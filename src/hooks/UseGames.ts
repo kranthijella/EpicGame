@@ -1,6 +1,5 @@
-import {useEffect, useState} from "react";
-import apiClient from "../services/api-client.ts";
-import {CanceledError} from "axios";
+import useData from "./UseData.ts";
+import {GameQuery} from "../App.tsx";
 
 export interface Platform {
     id : number;
@@ -16,27 +15,10 @@ export interface Game{
     }[];
     metacritic : number
 }
-interface FetchResponse{
-    count : number;
-    results : Game[];
 
-}
-function useGames(){
-    const [games,setGames] = useState<Game[]>([])
-    const [error,setError] = useState('')
+function useGames( gameQuery : GameQuery){
 
-    useEffect(() =>{
-        const Controller = new AbortController();
-
-        apiClient.get<FetchResponse>('/games',{signal: Controller.signal})
-            .then(res => setGames(res.data.results))
-            .catch((err) => {
-                if(err instanceof CanceledError) return;
-                setError(err.message)}
-            )
-        return () => Controller.abort()
-    },[])
-    return {games,error}
+    return useData<Game>('/games',{params : {genres:gameQuery.genre?.id , platforms : gameQuery.platform?.id, ordering : gameQuery.sortOrder,search : gameQuery.searchText }},[gameQuery])
 }
 
 export default useGames
